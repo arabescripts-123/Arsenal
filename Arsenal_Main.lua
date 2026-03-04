@@ -22,7 +22,7 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 220, 0, 245)
+MainFrame.Size = UDim2.new(0, 220, 0, 290)
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 8)
@@ -138,12 +138,14 @@ end
 local espKey = Enum.KeyCode.J
 local aimbotKey = Enum.KeyCode.X
 local autoFireKey = Enum.KeyCode.C
+local maxKey = Enum.KeyCode.V
 local toggleKey = Enum.KeyCode.Z
 
 local aimbotEnabled = false
 local aimbotFOV = 300
 local rightMouseDown = false
 local autoFireEnabled = false
+local maxEnabled = false
 
 local espEnabled = false
 local espBoxes = {}
@@ -250,6 +252,9 @@ local aimbotKeyBox = createKeyBox("X", UDim2.new(0, 145, 0, 95))
 local autoFireBtn, autoFireIndicator = createButton("Auto Fire", UDim2.new(0, 10, 0, 140))
 local autoFireKeyBox = createKeyBox("C", UDim2.new(0, 145, 0, 140))
 
+local maxBtn, maxIndicator = createButton("Max", UDim2.new(0, 10, 0, 185))
+local maxKeyBox = createKeyBox("V", UDim2.new(0, 145, 0, 185))
+
 espBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     if espEnabled then
@@ -291,6 +296,35 @@ local function getClosestEnemy()
     return closest
 end
 
+local function getClosestEnemyMax()
+    local cam = workspace.CurrentCamera
+    local closest = nil
+    local shortestDistance = math.huge
+    
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and plr.Character and isEnemy(plr) then
+            local humanoid = plr.Character:FindFirstChild("Humanoid")
+            local head = plr.Character:FindFirstChild("Head")
+            
+            if humanoid and head and humanoid.Health > 0 then
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local ray = Ray.new(cam.CFrame.Position, (head.Position - cam.CFrame.Position).Unit * 1000)
+                    local hit = workspace:FindPartOnRayWithIgnoreList(ray, {player.Character})
+                    if hit and hit:IsDescendantOf(plr.Character) then
+                        local distance = (cam.CFrame.Position - head.Position).Magnitude
+                        if distance < shortestDistance then
+                            shortestDistance = distance
+                            closest = head
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
 local function isEnemyInCrosshair()
     local cam = workspace.CurrentCamera
     local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
@@ -315,25 +349,41 @@ local function isEnemyInCrosshair()
 end
 
 RunService.RenderStepped:Connect(function()
-    if not aimbotEnabled or not rightMouseDown then return end
-    local target = getClosestEnemy()
-    if target then
-        local cam = workspace.CurrentCamera
-        local targetPos = target.Position
-        cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
+    if maxEnabled then
+        local target = getClosestEnemyMax()
+        if target then
+            local cam = workspace.CurrentCamera
+            local targetPos = target.Position
+            cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
+        end
+    elseif aimbotEnabled and rightMouseDown then
+        local target = getClosestEnemy()
+        if target then
+            local cam = workspace.CurrentCamera
+            local targetPos = target.Position
+            cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
+        end
     end
 end)
 
 RunService.Heartbeat:Connect(function()
-    if not autoFireEnabled then return end
-    if isEnemyInCrosshair() then
-        mouse1press()
-        task.wait(0.05)
-        mouse1release()
+    if maxEnabled then
+        if isEnemyInCrosshair() then
+            mouse1press()
+            task.wait(0.05)
+            mouse1release()
+        end
+    elseif autoFireEnabled then
+        if isEnemyInCrosshair() then
+            mouse1press()
+            task.wait(0.05)
+            mouse1release()
+        end
     end
 end)
 
 aimbotBtn.MouseButton1Click:Connect(function()
+    if maxEnabled then return end
     aimbotEnabled = not aimbotEnabled
     if aimbotEnabled then
         aimbotIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
@@ -343,11 +393,25 @@ aimbotBtn.MouseButton1Click:Connect(function()
 end)
 
 autoFireBtn.MouseButton1Click:Connect(function()
+    if maxEnabled then return end
     autoFireEnabled = not autoFireEnabled
     if autoFireEnabled then
         autoFireIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
     else
         autoFireIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+maxBtn.MouseButton1Click:Connect(function()
+    maxEnabled = not maxEnabled
+    if maxEnabled then
+        aimbotEnabled = false
+        autoFireEnabled = false
+        aimbotIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        autoFireIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        maxIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        maxIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
     end
 end)
 
@@ -393,6 +457,18 @@ autoFireKeyBox.FocusLost:Connect(function()
     end
 end)
 
+maxKeyBox.FocusLost:Connect(function()
+    local text = maxKeyBox.Text:upper()
+    local success, key = pcall(function() return Enum.KeyCode[text] end)
+    if success and key then
+        maxKey = key
+        maxKeyBox.Text = text
+    else
+        maxKeyBox.Text = "V"
+        maxKey = Enum.KeyCode.V
+    end
+end)
+
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if input.UserInputType == Enum.UserInputType.MouseButton2 then
         rightMouseDown = true
@@ -413,6 +489,7 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             espIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         end
     elseif input.KeyCode == aimbotKey then
+        if maxEnabled then return end
         aimbotEnabled = not aimbotEnabled
         if aimbotEnabled then
             aimbotIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
@@ -420,11 +497,23 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
             aimbotIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         end
     elseif input.KeyCode == autoFireKey then
+        if maxEnabled then return end
         autoFireEnabled = not autoFireEnabled
         if autoFireEnabled then
             autoFireIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
         else
             autoFireIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    elseif input.KeyCode == maxKey then
+        maxEnabled = not maxEnabled
+        if maxEnabled then
+            aimbotEnabled = false
+            autoFireEnabled = false
+            aimbotIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            autoFireIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            maxIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        else
+            maxIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         end
     end
 end)
@@ -437,4 +526,4 @@ end)
 
 ScreenGui.Parent = game.CoreGui
 
-print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire | Aimbot: Segure BOTAO DIREITO")
+print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire V=Max | Aimbot: Segure BOTAO DIREITO")
