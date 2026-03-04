@@ -355,6 +355,50 @@ local function getClosestEnemyMax()
     return closest
 end
 
+local hitboxExpansion = 3
+
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            for _, part in pairs(plr.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
+                    part.Transparency = 1
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+game.Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        if plr ~= player then
+            for _, part in pairs(char:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
+                    part.Transparency = 1
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+end)
+
+for _, plr in pairs(game.Players:GetPlayers()) do
+    if plr ~= player and plr.Character then
+        for _, part in pairs(plr.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
+                part.Transparency = 1
+                part.CanCollide = false
+            end
+        end
+    end
+end
+
 local function isEnemyInCrosshair()
     local cam = workspace.CurrentCamera
     local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
