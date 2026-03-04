@@ -378,6 +378,7 @@ local function isEnemyInCrosshair()
     return false
 end
 
+local lastShot = 0
 RunService.RenderStepped:Connect(function()
     if maxEnabled then
         local target = getClosestEnemyMax()
@@ -385,6 +386,11 @@ RunService.RenderStepped:Connect(function()
             local cam = workspace.CurrentCamera
             local targetPos = target.Position
             cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
+            
+            if tick() - lastShot > 0.1 and isEnemyInCrosshair() then
+                mouse1click()
+                lastShot = tick()
+            end
         end
     elseif aimbotEnabled and rightMouseDown then
         local target = getClosestEnemy()
@@ -394,20 +400,11 @@ RunService.RenderStepped:Connect(function()
             cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
         end
     end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if maxEnabled then
-        if isEnemyInCrosshair() then
-            mouse1press()
-            task.wait(0.05)
-            mouse1release()
-        end
-    elseif autoFireEnabled then
-        if isEnemyInCrosshair() then
-            mouse1press()
-            task.wait(0.05)
-            mouse1release()
+    
+    if autoFireEnabled and not maxEnabled then
+        if tick() - lastShot > 0.1 and isEnemyInCrosshair() then
+            mouse1click()
+            lastShot = tick()
         end
     end
 end)
