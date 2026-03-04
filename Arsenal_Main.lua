@@ -142,7 +142,7 @@ local toggleKey = Enum.KeyCode.Z
 
 local aimbotEnabled = false
 local aimbotFOV = 300
-local mouseButton3Down = false
+local rightMouseDown = false
 local autoFireEnabled = false
 
 local espEnabled = false
@@ -315,7 +315,7 @@ local function isEnemyInCrosshair()
 end
 
 RunService.RenderStepped:Connect(function()
-    if not aimbotEnabled or not mouseButton3Down then return end
+    if not aimbotEnabled or not rightMouseDown then return end
     local target = getClosestEnemy()
     if target then
         local cam = workspace.CurrentCamera
@@ -392,8 +392,8 @@ autoFireKeyBox.FocusLost:Connect(function()
 end)
 
 UIS.InputBegan:Connect(function(input, gameProcessed)
-    if input.UserInputType == Enum.UserInputType.MouseButton3 then
-        mouseButton3Down = true
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        rightMouseDown = true
     end
     
     if gameProcessed then return end
@@ -427,8 +427,8 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton3 then
-        mouseButton3Down = false
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        rightMouseDown = false
     end
 end)
 
