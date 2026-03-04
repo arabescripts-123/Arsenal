@@ -454,26 +454,15 @@ superJumpBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-player.CharacterAdded:Connect(function(char)
-    char:WaitForChild("Humanoid")
-    RunService.Heartbeat:Connect(function()
-        if superJumpEnabled and char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.JumpPower = 150
-        elseif char and char:FindFirstChild("Humanoid") then
-            char.Humanoid.JumpPower = 50
-        end
-    end)
+RunService.Heartbeat:Connect(function()
+    if superJumpEnabled and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpHeight = 100
+        player.Character.Humanoid.UseJumpPower = false
+    elseif player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpHeight = 7.2
+        player.Character.Humanoid.UseJumpPower = false
+    end
 end)
-
-if player.Character and player.Character:FindFirstChild("Humanoid") then
-    RunService.Heartbeat:Connect(function()
-        if superJumpEnabled and player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.JumpPower = 150
-        elseif player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.JumpPower = 50
-        end
-    end)
-end
 
 rejoinBtn.MouseButton1Click:Connect(function()
     local ts = game:GetService("TeleportService")
