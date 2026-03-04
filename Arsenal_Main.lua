@@ -22,7 +22,7 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
-MainFrame.Size = UDim2.new(0, 220, 0, 290)
+MainFrame.Size = UDim2.new(0, 220, 0, 335)
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 8)
@@ -139,6 +139,7 @@ local espKey = Enum.KeyCode.J
 local aimbotKey = Enum.KeyCode.X
 local autoFireKey = Enum.KeyCode.C
 local maxKey = Enum.KeyCode.V
+local superJumpKey = Enum.KeyCode.B
 local toggleKey = Enum.KeyCode.Z
 
 local aimbotEnabled = false
@@ -146,6 +147,7 @@ local aimbotFOV = 300
 local rightMouseDown = false
 local autoFireEnabled = false
 local maxEnabled = false
+local superJumpEnabled = false
 
 local espEnabled = false
 local espBoxes = {}
@@ -279,6 +281,9 @@ local autoFireKeyBox = createKeyBox("C", UDim2.new(0, 145, 0, 140))
 
 local maxBtn, maxIndicator = createButton("Max", UDim2.new(0, 10, 0, 185))
 local maxKeyBox = createKeyBox("V", UDim2.new(0, 145, 0, 185))
+
+local superJumpBtn, superJumpIndicator = createButton("Super Jump", UDim2.new(0, 10, 0, 230))
+local superJumpKeyBox = createKeyBox("B", UDim2.new(0, 145, 0, 230))
 
 espBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
@@ -440,6 +445,36 @@ maxBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+superJumpBtn.MouseButton1Click:Connect(function()
+    superJumpEnabled = not superJumpEnabled
+    if superJumpEnabled then
+        superJumpIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        superJumpIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    char:WaitForChild("Humanoid")
+    RunService.Heartbeat:Connect(function()
+        if superJumpEnabled and char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = 150
+        elseif char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = 50
+        end
+    end)
+end)
+
+if player.Character and player.Character:FindFirstChild("Humanoid") then
+    RunService.Heartbeat:Connect(function()
+        if superJumpEnabled and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = 150
+        elseif player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = 50
+        end
+    end)
+end
+
 rejoinBtn.MouseButton1Click:Connect(function()
     local ts = game:GetService("TeleportService")
     local p = game:GetService("Players").LocalPlayer
@@ -494,6 +529,18 @@ maxKeyBox.FocusLost:Connect(function()
     end
 end)
 
+superJumpKeyBox.FocusLost:Connect(function()
+    local text = superJumpKeyBox.Text:upper()
+    local success, key = pcall(function() return Enum.KeyCode[text] end)
+    if success and key then
+        superJumpKey = key
+        superJumpKeyBox.Text = text
+    else
+        superJumpKeyBox.Text = "B"
+        superJumpKey = Enum.KeyCode.B
+    end
+end)
+
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if input.UserInputType == Enum.UserInputType.MouseButton2 then
         rightMouseDown = true
@@ -540,6 +587,13 @@ UIS.InputBegan:Connect(function(input, gameProcessed)
         else
             maxIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         end
+    elseif input.KeyCode == superJumpKey then
+        superJumpEnabled = not superJumpEnabled
+        if superJumpEnabled then
+            superJumpIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        else
+            superJumpIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
     end
 end)
 
@@ -551,4 +605,4 @@ end)
 
 ScreenGui.Parent = game.CoreGui
 
-print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire V=Max | Aimbot: Segure BOTAO DIREITO")
+print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire V=Max B=SuperJump | Aimbot: Segure BOTAO DIREITO")
