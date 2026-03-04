@@ -352,7 +352,9 @@ autoFireBtn.MouseButton1Click:Connect(function()
 end)
 
 rejoinBtn.MouseButton1Click:Connect(function()
-    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+    local ts = game:GetService("TeleportService")
+    local p = game:GetService("Players").LocalPlayer
+    ts:Teleport(game.PlaceId, p)
 end)
 
 espKeyBox.FocusLost:Connect(function()
