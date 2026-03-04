@@ -355,18 +355,17 @@ local function getClosestEnemyMax()
     return closest
 end
 
-local hitboxExpansion = 3
+local headExpansion = 3
 
 player.CharacterAdded:Connect(function()
     task.wait(1)
     for _, plr in pairs(game.Players:GetPlayers()) do
         if plr ~= player and plr.Character then
-            for _, part in pairs(plr.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
-                    part.Transparency = 1
-                    part.CanCollide = false
-                end
+            local head = plr.Character:FindFirstChild("Head")
+            if head then
+                head.Size = head.Size + Vector3.new(headExpansion, headExpansion, headExpansion)
+                head.Transparency = 1
+                head.CanCollide = false
             end
         end
     end
@@ -376,12 +375,11 @@ game.Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function(char)
         task.wait(0.5)
         if plr ~= player then
-            for _, part in pairs(char:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
-                    part.Transparency = 1
-                    part.CanCollide = false
-                end
+            local head = char:FindFirstChild("Head")
+            if head then
+                head.Size = head.Size + Vector3.new(headExpansion, headExpansion, headExpansion)
+                head.Transparency = 1
+                head.CanCollide = false
             end
         end
     end)
@@ -389,12 +387,11 @@ end)
 
 for _, plr in pairs(game.Players:GetPlayers()) do
     if plr ~= player and plr.Character then
-        for _, part in pairs(plr.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Size = part.Size + Vector3.new(hitboxExpansion, hitboxExpansion, hitboxExpansion)
-                part.Transparency = 1
-                part.CanCollide = false
-            end
+        local head = plr.Character:FindFirstChild("Head")
+        if head then
+            head.Size = head.Size + Vector3.new(headExpansion, headExpansion, headExpansion)
+            head.Transparency = 1
+            head.CanCollide = false
         end
     end
 end
