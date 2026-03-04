@@ -397,17 +397,12 @@ RunService.RenderStepped:Connect(function()
 end)
 
 RunService.Heartbeat:Connect(function()
-    if maxEnabled then
+    if maxEnabled or autoFireEnabled then
         if isEnemyInCrosshair() then
-            mouse1press()
-            task.wait(0.05)
-            mouse1release()
-        end
-    elseif autoFireEnabled then
-        if isEnemyInCrosshair() then
-            mouse1press()
-            task.wait(0.05)
-            mouse1release()
+            local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+            if tool and tool:FindFirstChild("Handle") then
+                tool:Activate()
+            end
         end
     end
 end)
