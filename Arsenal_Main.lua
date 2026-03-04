@@ -394,6 +394,7 @@ end)
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if input.UserInputType == Enum.UserInputType.MouseButton2 then
         rightMouseDown = true
+        return
     end
     
     if gameProcessed then return end
@@ -434,4 +435,4 @@ end)
 
 ScreenGui.Parent = game.CoreGui
 
-print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire")
+print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot C=AutoFire | Aimbot: Segure BOTAO DIREITO")
