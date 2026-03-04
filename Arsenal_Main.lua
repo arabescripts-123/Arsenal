@@ -396,14 +396,13 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+local VIM = game:GetService("VirtualInputManager")
+
 RunService.Heartbeat:Connect(function()
-    if maxEnabled or autoFireEnabled then
-        if isEnemyInCrosshair() then
-            local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-            if tool and tool:FindFirstChild("Handle") then
-                tool:Activate()
-            end
-        end
+    if (maxEnabled or autoFireEnabled) and isEnemyInCrosshair() then
+        VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        task.wait(0.05)
+        VIM:SendMouseButtonEvent(0, 0, 0, false, game, 1)
     end
 end)
 
