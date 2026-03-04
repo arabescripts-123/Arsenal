@@ -221,6 +221,22 @@ local function removeESP(plr)
     end
 end
 
+local function refreshESP()
+    for plr, _ in pairs(espBoxes) do
+        if not isEnemy(plr) then
+            removeESP(plr)
+        end
+    end
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and isEnemy(plr) then
+            if not espBoxes[plr] and plr.Character then
+                removeESP(plr)
+                addESP(plr)
+            end
+        end
+    end
+end
+
 local function enableESP()
     for _, plr in pairs(game.Players:GetPlayers()) do addESP(plr) end
     espConnections.playerAdded = game.Players.PlayerAdded:Connect(function(plr)
@@ -228,6 +244,11 @@ local function enableESP()
     end)
     espConnections.playerRemoving = game.Players.PlayerRemoving:Connect(function(plr)
         removeESP(plr)
+    end)
+    espConnections.refresh = RunService.Heartbeat:Connect(function()
+        if espEnabled and tick() % 2 < 0.016 then
+            refreshESP()
+        end
     end)
 end
 
@@ -240,6 +261,10 @@ local function disableESP()
     if espConnections.playerRemoving then
         espConnections.playerRemoving:Disconnect()
         espConnections.playerRemoving = nil
+    end
+    if espConnections.refresh then
+        espConnections.refresh:Disconnect()
+        espConnections.refresh = nil
     end
 end
 
