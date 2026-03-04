@@ -1,0 +1,372 @@
+-- Arsenal Script
+print("[Arsenal] Iniciando...")
+
+local player = game.Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+
+pcall(function()
+    if game.CoreGui:FindFirstChild("ArsenalGui") then
+        game.CoreGui:FindFirstChild("ArsenalGui"):Destroy()
+    end
+end)
+
+task.wait(1)
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ArsenalGui"
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.Position = UDim2.new(0.02, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 200)
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = MainFrame
+UIStroke.Color = Color3.fromRGB(0, 0, 0)
+UIStroke.Thickness = 3
+
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, -40, 0, 40)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "Arabe Scripts"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Active = true
+
+local rejoinBtn = Instance.new("TextButton")
+rejoinBtn.Parent = MainFrame
+rejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+rejoinBtn.Position = UDim2.new(1, -35, 0, 5)
+rejoinBtn.Size = UDim2.new(0, 30, 0, 30)
+rejoinBtn.Font = Enum.Font.GothamBold
+rejoinBtn.Text = "R"
+rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rejoinBtn.TextSize = 14
+
+local rejoinCorner = Instance.new("UICorner")
+rejoinCorner.CornerRadius = UDim.new(0, 6)
+rejoinCorner.Parent = rejoinBtn
+
+local dragging, dragInput, dragStart, startPos
+
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local function createButton(text, position)
+    local Button = Instance.new("TextButton")
+    local BtnCorner = Instance.new("UICorner")
+    local Indicator = Instance.new("Frame")
+    local IndicatorCorner = Instance.new("UICorner")
+    
+    Button.Parent = MainFrame
+    Button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    Button.Position = position
+    Button.Size = UDim2.new(0, 130, 0, 35)
+    Button.Font = Enum.Font.Gotham
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 13
+    
+    BtnCorner.CornerRadius = UDim.new(0, 6)
+    BtnCorner.Parent = Button
+    
+    Indicator.Parent = Button
+    Indicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    Indicator.Position = UDim2.new(1, -25, 0.5, -8)
+    Indicator.Size = UDim2.new(0, 16, 0, 16)
+    Indicator.BorderSizePixel = 0
+    
+    IndicatorCorner.CornerRadius = UDim.new(1, 0)
+    IndicatorCorner.Parent = Indicator
+    
+    return Button, Indicator
+end
+
+local function createKeyBox(text, position)
+    local Box = Instance.new("TextBox")
+    Box.Parent = MainFrame
+    Box.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Box.Position = position
+    Box.Size = UDim2.new(0, 35, 0, 35)
+    Box.Font = Enum.Font.Gotham
+    Box.Text = text
+    Box.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Box.TextSize = 10
+    Box.ClearTextOnFocus = false
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = Box
+    return Box
+end
+
+local espKey = Enum.KeyCode.J
+local aimbotKey = Enum.KeyCode.X
+local toggleKey = Enum.KeyCode.Z
+
+local aimbotEnabled = false
+local aimbotFOV = 300
+local rightMouseDown = false
+
+local espEnabled = false
+local espBoxes = {}
+local espConnections = {}
+
+local function isEnemy(otherPlayer)
+    if not otherPlayer or not otherPlayer.Team or not player.Team then return false end
+    return otherPlayer.Team ~= player.Team
+end
+
+local function addESP(plr)
+    if plr == player or not espEnabled then return end
+    
+    local function createHighlight(char)
+        task.wait(0.1)
+        if not espEnabled then return end
+        
+        pcall(function()
+            if not isEnemy(plr) then return end
+            
+            local head = char:FindFirstChild("Head")
+            if not head then return end
+            
+            local color = Color3.fromRGB(255, 0, 0)
+            
+            local highlight = Instance.new("Highlight")
+            highlight.FillColor = color
+            highlight.OutlineColor = color
+            highlight.FillTransparency = 0.7
+            highlight.OutlineTransparency = 0.2
+            highlight.Adornee = char
+            highlight.Parent = char
+            
+            local billboard = Instance.new("BillboardGui")
+            billboard.Adornee = head
+            billboard.Size = UDim2.new(0, 100, 0, 50)
+            billboard.StudsOffset = Vector3.new(0, 3, 0)
+            billboard.AlwaysOnTop = true
+            billboard.Parent = head
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.Text = plr.Name
+            nameLabel.TextColor3 = color
+            nameLabel.TextStrokeTransparency = 0.5
+            nameLabel.Font = Enum.Font.GothamBold
+            nameLabel.TextSize = 14
+            nameLabel.Parent = billboard
+            
+            if not espBoxes[plr] then espBoxes[plr] = {} end
+            table.insert(espBoxes[plr], highlight)
+            table.insert(espBoxes[plr], billboard)
+        end)
+    end
+    
+    if plr.Character then createHighlight(plr.Character) end
+    espConnections[plr] = plr.CharacterAdded:Connect(function(char)
+        if espEnabled then createHighlight(char) end
+    end)
+end
+
+local function removeESP(plr)
+    if espBoxes[plr] then
+        for _, v in pairs(espBoxes[plr]) do
+            pcall(function() v:Destroy() end)
+        end
+        espBoxes[plr] = nil
+    end
+    if espConnections[plr] then
+        espConnections[plr]:Disconnect()
+        espConnections[plr] = nil
+    end
+end
+
+local function enableESP()
+    for _, plr in pairs(game.Players:GetPlayers()) do addESP(plr) end
+    espConnections.playerAdded = game.Players.PlayerAdded:Connect(function(plr)
+        if espEnabled then addESP(plr) end
+    end)
+    espConnections.playerRemoving = game.Players.PlayerRemoving:Connect(function(plr)
+        removeESP(plr)
+    end)
+end
+
+local function disableESP()
+    for plr, _ in pairs(espBoxes) do removeESP(plr) end
+    if espConnections.playerAdded then
+        espConnections.playerAdded:Disconnect()
+        espConnections.playerAdded = nil
+    end
+    if espConnections.playerRemoving then
+        espConnections.playerRemoving:Disconnect()
+        espConnections.playerRemoving = nil
+    end
+end
+
+local espBtn, espIndicator = createButton("ESP", UDim2.new(0, 10, 0, 50))
+local espKeyBox = createKeyBox("J", UDim2.new(0, 145, 0, 50))
+
+local aimbotBtn, aimbotIndicator = createButton("Aimbot", UDim2.new(0, 10, 0, 95))
+local aimbotKeyBox = createKeyBox("X", UDim2.new(0, 145, 0, 95))
+
+espBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    if espEnabled then
+        enableESP()
+        espIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        disableESP()
+        espIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+local function getClosestEnemy()
+    local mouse = player:GetMouse()
+    local mousePos = Vector2.new(mouse.X, mouse.Y)
+    local closest = nil
+    local shortestDistance = aimbotFOV
+    
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and plr.Character and isEnemy(plr) then
+            local humanoid = plr.Character:FindFirstChild("Humanoid")
+            local head = plr.Character:FindFirstChild("Head")
+            
+            if humanoid and head and humanoid.Health > 0 then
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                    if distance < shortestDistance then
+                        local ray = Ray.new(workspace.CurrentCamera.CFrame.Position, (head.Position - workspace.CurrentCamera.CFrame.Position).Unit * 1000)
+                        local hit = workspace:FindPartOnRayWithIgnoreList(ray, {player.Character})
+                        if hit and hit:IsDescendantOf(plr.Character) then
+                            shortestDistance = distance
+                            closest = head
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if not aimbotEnabled or not rightMouseDown then return end
+    local target = getClosestEnemy()
+    if target then
+        local cam = workspace.CurrentCamera
+        local targetPos = target.Position
+        cam.CFrame = CFrame.new(cam.CFrame.Position, targetPos)
+    end
+end)
+
+aimbotBtn.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    if aimbotEnabled then
+        aimbotIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+    else
+        aimbotIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+rejoinBtn.MouseButton1Click:Connect(function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+end)
+
+espKeyBox.FocusLost:Connect(function()
+    local text = espKeyBox.Text:upper()
+    local success, key = pcall(function() return Enum.KeyCode[text] end)
+    if success and key then
+        espKey = key
+        espKeyBox.Text = text
+    else
+        espKeyBox.Text = "J"
+        espKey = Enum.KeyCode.J
+    end
+end)
+
+aimbotKeyBox.FocusLost:Connect(function()
+    local text = aimbotKeyBox.Text:upper()
+    local success, key = pcall(function() return Enum.KeyCode[text] end)
+    if success and key then
+        aimbotKey = key
+        aimbotKeyBox.Text = text
+    else
+        aimbotKeyBox.Text = "X"
+        aimbotKey = Enum.KeyCode.X
+    end
+end)
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        rightMouseDown = true
+    end
+    
+    if gameProcessed then return end
+    
+    if input.KeyCode == toggleKey then
+        MainFrame.Visible = not MainFrame.Visible
+    elseif input.KeyCode == espKey then
+        espEnabled = not espEnabled
+        if espEnabled then
+            enableESP()
+            espIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        else
+            disableESP()
+            espIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    elseif input.KeyCode == aimbotKey then
+        aimbotEnabled = not aimbotEnabled
+        if aimbotEnabled then
+            aimbotIndicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        else
+            aimbotIndicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        end
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        rightMouseDown = false
+    end
+end)
+
+ScreenGui.Parent = game.CoreGui
+
+print("[Arsenal] Carregado! Z=Menu J=ESP X=Aimbot")
